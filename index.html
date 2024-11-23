@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manhua Reader</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Manhua Reader</h1>
+    <h2>Upload Manhua Page for OCR</h2>
+    <form id="ocr-form">
+        <input type="file" name="image" accept="image/*">
+        <button type="submit">Extract Text</button>
+    </form>
+
+    <h3>Extracted Text</h3>
+    <pre id="extracted-text"></pre>
+
+    <h2>Convert Extracted Text to Speech</h2>
+    <button id="tts-button">Convert to Speech</button>
+    <audio controls id="audio-player"></audio>
+
+    <script>
+        $(document).ready(function () {
+            // Handle OCR form submission
+            $('#ocr-form').on('submit', function (e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+
+                $.ajax({
+                    url: '/ocr',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        $('#extracted-text').text(response.text);
+                    },
+                    error: function () {
+                        alert('Failed to process the image.');
+                    }
+                });
+            });
+
+            // Handle TTS conversion
+            $('#tts-button').on('click', function () {
+                const text = $('#extracted-text').text();
+
+                $.ajax({
+                    url: '/tts',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ text }),
+                    success: function (response) {
+                        $('#audio-player').attr('src', response.audio_url);
+                    },
+                    error: function () {
+                        alert('Failed to convert text to speech.');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
